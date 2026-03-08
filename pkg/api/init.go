@@ -9,11 +9,13 @@ import (
 )
 
 func Init() error {
-	http.HandleFunc("/api/task", taskHandler)
-	http.HandleFunc("/api/tasks", tasksHandler)
-	http.HandleFunc("/api/task/done", doneHandler)
+	http.HandleFunc("/api/signin", signinHandler)
+	http.HandleFunc("/api/task", AuthMiddleware(taskHandler))
+	http.HandleFunc("/api/tasks", AuthMiddleware(tasksHandler))
+	http.HandleFunc("/api/task/done", AuthMiddleware(doneHandler))
 	return nil
 }
+
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
