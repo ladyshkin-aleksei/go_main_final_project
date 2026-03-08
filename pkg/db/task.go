@@ -30,7 +30,7 @@ func CheckDate(task *Task) error {
 	}
 
 	if task.Repeat != "" {
-		next, err := NextDate(now, task.Date, task.Repeat)
+		next, err := NextDate(task.Date, task.Repeat)
 		if err != nil {
 			return fmt.Errorf("правило повторения указано в неправильном формате")
 		}
@@ -46,10 +46,39 @@ func CheckDate(task *Task) error {
 	return nil
 }
 
-func NextDate(now time.Time, date, repeat string) (string, error) {
-	return date, nil
-}
+func NextDate(date, repeat string) (string, error) {
+	t, err := time.Parse("20060102", date)
+	if err != nil {
+		return "", fmt.Errorf("некорректный формат даты: %s", date)
+	}
 
+	parts := strings.Split(repeat, " ")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("некорректное правило повторения: %s", repeat)
+	}
+
+	unit := parts[0]
+	count, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return "", fmt.Errorf("некорректное число в правиле повторения: %s", parts[1])
+	}
+
+	var next time.Time
+	switch unit {
+	case "d":
+		next = t.AddDate(0, 0, count)
+	case "w":
+		next = t.AddDate(0, 0, count*7)
+	case "m":
+		next = t.AddDate(0, count, 0)
+	case "y":
+		next = t.AddDate(count, 0, 0)
+	default:
+		return "", fmt.Errorf("неизвестный тип повторения: %s", unit)
+	}
+
+	return next.Format("20060102"), nil
+}
 
 func afterNow(now, t time.Time) bool {
 	return t.Before(now) 
@@ -180,4 +209,44 @@ func isValidRepeat(repeat string) bool {
 
 	_, err := strconv.Atoi(parts[1])
 	return err == nil
+}
+
+func DeleteTask(id string) error {
+	query := `DELETE FROM scheduler WHERE id = ?`
+
+	res, err := db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("ошибка удаления задачи: %w", err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("ошибка проверки количества удалённых записей: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("Задача не найдена")
+	}
+
+	return nil
+}
+
+func UpdateDate(next string, id string) error {
+	query := `UPDATE scheduler SET date = ? WHERE id = ?`
+
+	res, err := db.Exec(query, next, id)
+	if err != nil {
+		return fmt.Errorf("ошибка обновления даты задачи: %w", err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("ошибка проверки количества изменённых записей: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("Задача не найдена")
+	}
+
+	return nil
 }

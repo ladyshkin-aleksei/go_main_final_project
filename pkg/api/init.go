@@ -11,11 +11,29 @@ import (
 func Init() error {
 	http.HandleFunc("/api/task", taskHandler)
 	http.HandleFunc("/api/tasks", tasksHandler)
+	http.HandleFunc("/api/task/done", doneHandler)
 	return nil
 }
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	
+case http.MethodDelete:
+
+	id := r.FormValue("id")
+	if id == "" {
+		writeJSON(w, map[string]string{"error": "Не указан идентификатор"})
+		return
+	}
+
+	err := db.DeleteTask(id)
+	if err != nil {
+		writeJSON(w, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, map[string]interface{}{})
+	
 	case http.MethodGet:
 		id := r.FormValue("id")
 		if id == "" {
