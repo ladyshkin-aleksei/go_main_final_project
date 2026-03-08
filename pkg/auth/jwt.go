@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/sha256"
 	"fmt"
-	"os"
 	"time"
 	"github.com/golang-jwt/jwt/v4"
 )
