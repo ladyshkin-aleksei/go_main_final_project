@@ -21,7 +21,7 @@ func NextDate(now time.Time, dateStr, repeatStr string) (string, error) {
 	switch parts[0] {
 	case "y":
 		if len(parts) != 1 {
-			return "", fmt.Errorf("некорректный формат правила 'y'")
+			return "", fmt.Errorf("incorrect rule format 'y'")
 		}
 
 		next := date.AddDate(1, 0, 0)
@@ -29,17 +29,17 @@ func NextDate(now time.Time, dateStr, repeatStr string) (string, error) {
 
 	case "d":
 		if len(parts) != 2 {
-			return "", fmt.Errorf("некорректный формат правила 'd'")
+			return "", fmt.Errorf("incorrect rule format 'd'")
 		}
 		days, err := strconv.Atoi(parts[1])
 		if err != nil || days <= 0 || days > 400 {
-			return "", fmt.Errorf("некорректное количество дней в правиле 'd'")
+			return "", fmt.Errorf("incorrect number of days in the rule 'd'")
 		}
 
 		next := date.AddDate(0, 0, days)
 		return next.Format("20060102"), nil
 
 	default:
-		return "", fmt.Errorf("неизвестное правило повторения: %s", parts[0])
+		return "", fmt.Errorf("unknown repetition rule: %s", parts[0])
 	}
 }

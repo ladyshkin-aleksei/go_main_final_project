@@ -26,13 +26,13 @@ func CheckDate(task *Task) error {
 
 	t, err := time.Parse("20060102", task.Date)
 	if err != nil {
-		return fmt.Errorf("дата представлена в формате, отличном от 20060102")
+		return fmt.Errorf("the date is presented in a format other than 20060102")
 	}
 
 	if task.Repeat != "" {
 		next, err := NextDate(task.Date, task.Repeat)
 		if err != nil {
-			return fmt.Errorf("правило повторения указано в неправильном формате")
+			return fmt.Errorf("the repetition rule is in the wrong format")
 		}
 	if afterNow(now, t) {
 		task.Date = next
@@ -49,18 +49,18 @@ func CheckDate(task *Task) error {
 func NextDate(date, repeat string) (string, error) {
 	t, err := time.Parse("20060102", date)
 	if err != nil {
-		return "", fmt.Errorf("некорректный формат даты: %s", date)
+		return "", fmt.Errorf("incorrect date format: %s", date)
 	}
 
 	parts := strings.Split(repeat, " ")
 	if len(parts) != 2 {
-		return "", fmt.Errorf("некорректное правило повторения: %s", repeat)
+		return "", fmt.Errorf("incorrect repetition rule: %s", repeat)
 	}
 
 	unit := parts[0]
 	count, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return "", fmt.Errorf("некорректное число в правиле повторения: %s", parts[1])
+		return "", fmt.Errorf("incorrect number in the repetition rule: %s", parts[1])
 	}
 
 	var next time.Time
@@ -74,7 +74,7 @@ func NextDate(date, repeat string) (string, error) {
 	case "y":
 		next = t.AddDate(count, 0, 0)
 	default:
-		return "", fmt.Errorf("неизвестный тип повторения: %s", unit)
+		return "", fmt.Errorf("unknown type of repetition: %s", unit)
 	}
 
 	return next.Format("20060102"), nil
@@ -107,7 +107,7 @@ func Tasks(limit int) ([]*Task, error) {
 
 	rows, err := db.Query(query, limit)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка выполнения запроса к БД: %w", err)
+		return nil, fmt.Errorf("error in executing a database request: %w", err)
 	}
 	defer rows.Close()
 
@@ -117,7 +117,7 @@ func Tasks(limit int) ([]*Task, error) {
 		task := &Task{}
 		err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
-			return nil, fmt.Errorf("ошибка сканирования строки БД: %w", err)
+			return nil, fmt.Errorf("error scanning a database row: %w", err)
 		}
 		tasks = append(tasks, task)
 	}
@@ -140,9 +140,9 @@ func GetTask(id string) (*Task, error) {
 	err := db.QueryRow(query, id).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("Задача не найдена")
+			return nil, fmt.Errorf("issue not found")
 		}
-		return nil, fmt.Errorf("ошибка получения задачи: %w", err)
+		return nil, fmt.Errorf("issue receipt error: %w", err)
 	}
 
 	return task, nil
@@ -161,16 +161,16 @@ func UpdateTask(task *Task) error {
 
 	res, err := db.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
 	if err != nil {
-		return fmt.Errorf("ошибка обновления задачи: %w", err)
+		return fmt.Errorf("issue update error: %w", err)
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("ошибка проверки количества изменённых записей: %w", err)
+		return fmt.Errorf("error checking the number of modified records: %w", err)
 	}
 
 	if count == 0 {
-		return fmt.Errorf("Задача не найдена")
+		return fmt.Errorf("issue not found")
 	}
 
 	return nil
@@ -178,17 +178,17 @@ func UpdateTask(task *Task) error {
 
 func ValidateTask(task *Task) error {
 	if task.Title == "" {
-		return fmt.Errorf("Не указан заголовок задачи")
+		return fmt.Errorf("the issue title is not specified")
 	}
 
 	_, err := time.Parse("20060102", task.Date)
 	if err != nil {
-		return fmt.Errorf("некорректный формат даты: %s", task.Date)
+		return fmt.Errorf("incorrect date format: %s", task.Date)
 	}
 
 	if task.Repeat != "" {
 		if !isValidRepeat(task.Repeat) {
-			return fmt.Errorf("некорректное правило повторения: %s", task.Repeat)
+			return fmt.Errorf("incorrect repetition rule: %s", task.Repeat)
 		}
 	}
 
@@ -216,16 +216,16 @@ func DeleteTask(id string) error {
 
 	res, err := db.Exec(query, id)
 	if err != nil {
-		return fmt.Errorf("ошибка удаления задачи: %w", err)
+		return fmt.Errorf("issue deletion error: %w", err)
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("ошибка проверки количества удалённых записей: %w", err)
+		return fmt.Errorf("error checking the number of deleted records: %w", err)
 	}
 
 	if count == 0 {
-		return fmt.Errorf("Задача не найдена")
+		return fmt.Errorf("issue not found")
 	}
 
 	return nil
@@ -236,16 +236,16 @@ func UpdateDate(next string, id string) error {
 
 	res, err := db.Exec(query, next, id)
 	if err != nil {
-		return fmt.Errorf("ошибка обновления даты задачи: %w", err)
+		return fmt.Errorf("issue date update error: %w", err)
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("ошибка проверки количества изменённых записей: %w", err)
+		return fmt.Errorf("error checking the number of modified records: %w", err)
 	}
 
 	if count == 0 {
-		return fmt.Errorf("Задача не найдена")
+		return fmt.Errorf("issue not found")
 	}
 
 	return nil

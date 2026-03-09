@@ -9,6 +9,6 @@ import (
 func Run() error {
 	api.Init()
 
-	log.Println("Сервер запущен на :7540")
+	log.Println("the server is running on :7540")
 	return http.ListenAndServe(":7540", nil)
 }

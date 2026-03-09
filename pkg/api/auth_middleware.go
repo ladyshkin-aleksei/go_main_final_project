@@ -14,12 +14,12 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	if password != "" {
 		cookie, err := r.Cookie("token")
 		if err != nil {
-		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		http.Error(w, "authentication required", http.StatusUnauthorized)
 		return
 	}
 
 	if !auth.ValidateToken(cookie.Value, password) {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		http.Error(w, "invalid token", http.StatusUnauthorized)
 		return
 	}
 	}

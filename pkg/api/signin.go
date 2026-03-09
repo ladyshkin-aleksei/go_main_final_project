@@ -19,14 +19,14 @@ type SigninResponse struct {
 
 func signinHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		writeJSON(w, SigninResponse{Error: "Метод не поддерживается"})
+		writeJSON(w, SigninResponse{Error: "the method is not supported"})
 		return
 	}
 
 	var req SigninRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		writeJSON(w, SigninResponse{Error: "Неверный формат JSON"})
+		writeJSON(w, SigninResponse{Error: "invalid JSON format"})
 		return
 	}
 
@@ -37,13 +37,13 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Password != expectedPassword {
-		writeJSON(w, SigninResponse{Error: "Неверный пароль"})
+		writeJSON(w, SigninResponse{Error: "invalid password"})
 		return
 	}
 
 	token, err := auth.GenerateToken(req.Password)
 	if err != nil {
-		writeJSON(w, SigninResponse{Error: "Ошибка генерации токена"})
+		writeJSON(w, SigninResponse{Error: "token generation error"})
 		return
 	}
 

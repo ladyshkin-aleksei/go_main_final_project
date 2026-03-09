@@ -12,12 +12,12 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		writeJSON(w, map[string]string{"error": "ошибка десериализации JSON"})
+		writeJSON(w, map[string]string{"error": "error deserializing JSON"})
 		return
 	}
 
 	if task.Title == "" {
-		writeJSON(w, map[string]string{"error": "Не указан заголовок задачи"})
+		writeJSON(w, map[string]string{"error": "the issue title is not specified"})
 		return
 	}
 

@@ -8,13 +8,13 @@ import (
 
 func doneHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		writeJSON(w, map[string]string{"error": "метод не поддерживается"})
+		writeJSON(w, map[string]string{"error": "the method is not supported"})
 		return
 	}
 
 	id := r.FormValue("id")
 	if id == "" {
-		writeJSON(w, map[string]string{"error": "Не указан идентификатор"})
+		writeJSON(w, map[string]string{"error": "ID not specified"})
 		return
 	}
 	

@@ -12,7 +12,7 @@ type TasksResp struct {
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		writeJSON(w, map[string]string{"error": "метод не поддерживается"})
+		writeJSON(w, map[string]string{"error": "the method is not supported"})
 		return
 	}
 

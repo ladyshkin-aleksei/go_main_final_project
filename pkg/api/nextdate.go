@@ -23,17 +23,18 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		now, err = time.Parse(DateFormat, nowStr)
 		if err != nil {
-			http.Error(w, "некорректный формат параметра now", http.StatusBadRequest)
+			http.Error(w, "incorrect format of the now parameter", http.StatusBadRequest)
 			return
 	}
 	}
 
 	if dateStr == "" {
-		http.Error(w, "отсутствует обязательный параметр date", http.StatusBadRequest)
+		http.Error(w, "the required date parameter is missing", http.StatusBadRequest)
 		return
 	}
 	if repeatStr == "" {
-		http.Error(w, "отсутствует обязательный параметр repeat", http.StatusBadRequest)
+		http.Error(w, "the required repeat parameter is missing
+", http.StatusBadRequest)
 		return
 	}
 
