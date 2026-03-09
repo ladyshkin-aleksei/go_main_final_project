@@ -2,8 +2,10 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"go_main_final_project/pkg/db"
+	"go_main_final_project/pkg/repeat"
 )
 
 func doneHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +19,7 @@ func doneHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]string{"error": "ID not specified"})
 		return
 	}
-	
+
 	task, err := db.GetTask(id)
 	if err != nil {
 		writeJSON(w, map[string]string{"error": err.Error()})
@@ -29,15 +31,17 @@ func doneHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			writeJSON(w, map[string]string{"error": err.Error()})
 			return
-		}
+	}
 	} else {
-		nextDate, err := db.NextDate(task.Date, task.Repeat)
+		now := time.Now()
+		nextDate, err := repeat.NextDate(now, task.Date, task.Repeat)
 		if err != nil {
 			writeJSON(w, map[string]string{"error": err.Error()})
 			return
 		}
 
-		err = db.UpdateDate(nextDate, id)
+		task.Date = nextDate
+		err = db.UpdateTask(task)
 		if err != nil {
 			writeJSON(w, map[string]string{"error": err.Error()})
 			return

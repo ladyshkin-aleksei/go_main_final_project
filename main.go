@@ -9,6 +9,7 @@ import (
 
 	"go_main_final_project/pkg/db"
 	"go_main_final_project/pkg/api"
+	"go_main_final_project/pkg/handlers"
 )
 
 var Port = 7540
@@ -30,6 +31,8 @@ func main() {
 	}
 
 	api.Init()
+
+	http.HandleFunc("/api/nextdate", handlers.NextDateHandler)
 
 	webDir := "./web"
 	fileServer := http.FileServer(http.Dir(webDir))
