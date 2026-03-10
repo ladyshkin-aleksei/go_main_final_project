@@ -1,6 +1,5 @@
 package api
 
-
 import (
 	"encoding/json"
 	"net/http"
@@ -16,44 +15,28 @@ func Init() error {
 	return nil
 }
 
-
-func taskHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	
-case http.MethodDelete:
-
+func handleGetTask(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
 		writeJSON(w, map[string]string{"error": "ID not specified"})
 		return
 	}
 
-	err := db.DeleteTask(id)
+	task, err := db.GetTask(id)
 	if err != nil {
 		writeJSON(w, map[string]string{"error": err.Error()})
 		return
 	}
 
-	writeJSON(w, map[string]interface{}{})
-	
-	case http.MethodGet:
-		id := r.FormValue("id")
-		if id == "" {
-			writeJSON(w, map[string]string{"error": "ID not specified"})
-			return
-		}
+	writeJSON(w, task)
+}
 
-		task, err := db.GetTask(id)
-		if err != nil {
-			writeJSON(w, map[string]string{"error": err.Error()})
-			return
-	}
+func handlePostTask(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r)
+}
 
-		writeJSON(w, task)
-
-	case http.MethodPut:
+func handlePutTask(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
-
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		writeJSON(w, map[string]string{"error": "error deserializing JSON"})
 		return
@@ -76,9 +59,34 @@ case http.MethodDelete:
 	}
 
 	writeJSON(w, map[string]interface{}{})
-	case http.MethodPost:
-		addTaskHandler(w, r)
+}
 
+func handleDeleteTask(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	if id == "" {
+		writeJSON(w, map[string]string{"error": "ID not specified"})
+		return
+	}
+
+	err := db.DeleteTask(id)
+	if err != nil {
+		writeJSON(w, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, map[string]interface{}{})
+}
+
+func taskHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		handleGetTask(w, r)
+	case http.MethodPost:
+		handlePostTask(w, r)
+	case http.MethodPut:
+		handlePutTask(w, r)
+	case http.MethodDelete:
+		handleDeleteTask(w, r)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}

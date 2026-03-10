@@ -6,6 +6,9 @@ import (
 	"go_main_final_project/pkg/db"
 )
 
+const DefaultTasksLimit = 50
+
+
 type TasksResp struct {
 	Tasks []*db.Task `json:"tasks"`
 }
@@ -16,7 +19,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := db.Tasks(50)
+	tasks, err := db.Tasks(DefaultTasksLimit)
 	if err != nil {
 		writeJSON(w, map[string]string{"error": err.Error()})
 		return
