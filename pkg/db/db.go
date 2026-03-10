@@ -254,3 +254,10 @@ func UpdateDate(next string, id string) error {
 
 	return nil
 }
+
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
+}

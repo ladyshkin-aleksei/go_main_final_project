@@ -4,11 +4,21 @@ import (
 	"go_main_final_project/pkg/api"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 func Run() error {
-	api.Init()
+	port := 7540
 
-	log.Println("the server is running on :7540")
-	return http.ListenAndServe(":7540", nil)
+	if portStr := os.Getenv("TODO_PORT"); portStr != "" {
+		if p, err := strconv.Atoi(portStr); err == nil {
+			port = p
+		}
+	}
+
+	api.Init()
+	log.Printf("the server is running on :%d", port)
+
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

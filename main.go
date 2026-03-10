@@ -30,6 +30,12 @@ func main() {
 		log.Fatalf("database initialization error: %v", err)
 	}
 
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
+
 	api.Init()
 
 	http.HandleFunc("/api/nextdate", handlers.NextDateHandler)
