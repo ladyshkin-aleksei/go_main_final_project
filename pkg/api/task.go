@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"go_main_final_project/pkg/db"
+	"go_main_final_project/pkg/models"
 )
 
 const DefaultTasksLimit = 50
 
-
 type TasksResp struct {
-	Tasks []*db.Task `json:"tasks"`
+	Tasks []*models.Task `json:"tasks"`
 }
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {

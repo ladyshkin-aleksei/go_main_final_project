@@ -1,4 +1,3 @@
-
 package db
 
 import (
@@ -6,21 +5,13 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"strings"
-	"strconv"
 
 	_ "modernc.org/sqlite"
+	"go_main_final_project/pkg/validation"
+	"go_main_final_project/pkg/models"
 )
 
 var db *sql.DB
-
-type Task struct {
-	ID      string `json:"id"`
-	Date    string `json:"date"`
-	Title   string `json:"title"`
-	Comment string `json:"comment"`
-	Repeat  string `json:"repeat"`
-}
 
 const schema = `
 CREATE TABLE scheduler (
@@ -50,27 +41,14 @@ func Init(dbFile string) error {
 		_, err = db.Exec(schema)
 		if err != nil {
 			return err
-		}
+	}
 	}
 
 	return nil
 }
 
-func CheckDate(task *Task) error {
-	if task.Date == "" {
-		task.Date = time.Now().Format("20060102")
-		return nil
-	}
-
-	_, err := time.Parse("20060102", task.Date)
-	if err != nil {
-		return fmt.Errorf("invalid date format: %v", err)
-	}
-	return nil
-}
-
-func AddTask(task *Task) error {
-	if err := ValidateTask(task); err != nil {
+func AddTask(task *models.Task) error {
+	if err := validation.ValidateTask(task); err != nil {
 		return err
 	}
 
@@ -95,8 +73,7 @@ func AddTask(task *Task) error {
 	return nil
 }
 
-
-func Tasks(limit int) ([]*Task, error) {
+func Tasks(limit int) ([]*models.Task, error) {
 	query := `
 		SELECT id, date, title, comment, repeat
 		FROM scheduler
@@ -110,14 +87,14 @@ func Tasks(limit int) ([]*Task, error) {
 	}
 	defer rows.Close()
 
-	var tasks []*Task
+	var tasks []*models.Task
 
 	for rows.Next() {
-		task := &Task{}
+		task := &models.Task{}
 		err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning a database row: %w", err)
-		}
+	}
 		tasks = append(tasks, task)
 	}
 
@@ -126,20 +103,20 @@ func Tasks(limit int) ([]*Task, error) {
 	}
 
 	if tasks == nil {
-		tasks = []*Task{}
+		tasks = []*models.Task{}
 	}
 
 	return tasks, nil
 }
 
-func GetTask(id string) (*Task, error) {
+func GetTask(id string) (*models.Task, error) {
 	query := `
 		SELECT id, date, title, comment, repeat
 		FROM scheduler
 		WHERE id = ?
 	`
 
-	task := &Task{}
+	task := &models.Task{}
 	err := db.QueryRow(query, id).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -151,8 +128,8 @@ func GetTask(id string) (*Task, error) {
 	return task, nil
 }
 
-func UpdateTask(task *Task) error {
-	if err := ValidateTask(task); err != nil {
+func UpdateTask(task *models.Task) error {
+	if err := validation.ValidateTask(task); err != nil {
 		return err
 	}
 
@@ -178,46 +155,6 @@ func UpdateTask(task *Task) error {
 
 	return nil
 }
-
-func ValidateTask(task *Task) error {
-	if task.Title == "" {
-		return fmt.Errorf("the issue title is not specified")
-	}
-
-	if err := CheckDate(task); err != nil {
-		return err
-	}
-
-	if task.Repeat != "" {
-		if !isValidRepeat(task.Repeat) {
-			return fmt.Errorf("incorrect repetition rule: %s", task.Repeat)
-	}
-	}
-
-	return nil
-}
-
-func isValidRepeat(repeat string) bool {
-	parts := strings.Split(repeat, " ")
-	if len(parts) == 0 {
-		return false
-	}
-
-	unit := parts[0]
-	switch unit {
-	case "y":
-		return len(parts) == 1
-	case "d":
-		if len(parts) != 2 {
-			return false
-		}
-		days, err := strconv.Atoi(parts[1])
-		return err == nil && days > 0 && days <= 3650
-	default:
-		return false
-	}
-}
-
 
 func DeleteTask(id string) error {
 	query := `DELETE FROM scheduler WHERE id = ?`

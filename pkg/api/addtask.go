@@ -5,22 +5,19 @@ import (
 	"net/http"
 
 	"go_main_final_project/pkg/db"
+	"go_main_final_project/pkg/models" 
+	"go_main_final_project/pkg/validation"
 )
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
-	var task db.Task
+	var task models.Task 
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		writeJSON(w, map[string]string{"error": "error deserializing JSON"})
 		return
 	}
 
-	if task.Title == "" {
-		writeJSON(w, map[string]string{"error": "the issue title is not specified"})
-		return
-	}
-
-	if err := db.CheckDate(&task); err != nil {
+	if err := validation.ValidateTask(&task); err != nil {
 		writeJSON(w, map[string]string{"error": err.Error()})
 		return
 	}
