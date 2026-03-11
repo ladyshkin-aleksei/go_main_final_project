@@ -5,27 +5,17 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
-	"go_main_final_project/pkg/db"
 	"go_main_final_project/pkg/api"
+	"go_main_final_project/pkg/config"
+	"go_main_final_project/pkg/db"
 	"go_main_final_project/pkg/handlers"
 )
 
-var Port = 7540
-
-func init() {
-
-	if portStr := os.Getenv("TODO_PORT"); portStr != "" {
-		if port, err := strconv.Atoi(portStr); err == nil {
-			Port = port
-		}
-	}
-}
-
-
 func main() {
-	err := db.Init("scheduler.db")
+	cfg := config.Load()
+
+	err := db.Init(cfg.DBFile)
 	if err != nil {
 		log.Fatalf("database initialization error: %v", err)
 	}
@@ -36,18 +26,25 @@ func main() {
 		}
 	}()
 
-	api.Init()
+	err = api.Init()
+	if err != nil {
+		log.Fatalf("API initialization error: %v", err)
+	}
 
 	http.HandleFunc("/api/nextdate", handlers.NextDateHandler)
 
 	webDir := "./web"
+	if customWebDir := os.Getenv("TODO_WEB_DIR"); customWebDir != "" {
+		webDir = customWebDir
+	}
+
 	fileServer := http.FileServer(http.Dir(webDir))
 	http.Handle("/", fileServer)
 
-	log.Printf("running the web server on the port %d...\n", Port)
-	log.Printf("open it in a browser http://localhost:%d/\n", Port)
+	log.Printf("running the web server on the port %d...\n", cfg.Port)
+	log.Printf("open it in a browser http://localhost:%d/\n", cfg.Port)
 
-	err = http.ListenAndServe(fmt.Sprintf(":%d", Port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
 	if err != nil {
 		log.Fatalf("server startup error: %v", err)
 	}

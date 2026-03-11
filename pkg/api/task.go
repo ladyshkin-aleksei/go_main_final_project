@@ -15,17 +15,17 @@ type TasksResp struct {
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		writeJSON(w, map[string]string{"error": "the method is not supported"})
+		writeJSON(w, errorResponse("the method is not supported", http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	tasks, err := db.Tasks(DefaultTasksLimit)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": err.Error()})
+		writeJSON(w, errorResponse(err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	writeJSON(w, TasksResp{
 		Tasks: tasks,
-	})
+	}, http.StatusOK)
 }

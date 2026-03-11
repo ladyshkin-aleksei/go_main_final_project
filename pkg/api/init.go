@@ -20,17 +20,21 @@ func Init() error {
 func handleGetTask(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
-		writeJSON(w, map[string]string{"error": "ID not specified"})
+		writeJSON(w, errorResponse("ID not specified", http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": err.Error()})
+		if err == db.ErrTaskNotFound {
+			writeJSON(w, errorResponse("task not found", http.StatusNotFound), http.StatusNotFound)
+		} else {
+			writeJSON(w, errorResponse(err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 		return
 	}
 
-	writeJSON(w, task)
+	writeJSON(w, task, http.StatusOK)
 }
 
 func handlePostTask(w http.ResponseWriter, r *http.Request) {
@@ -41,38 +45,42 @@ func handlePutTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		writeJSON(w, map[string]string{"error": "error deserializing JSON"})
+		writeJSON(w, errorResponse("error deserializing JSON", http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	if err := validation.ValidateTask(&task); err != nil {
-		writeJSON(w, map[string]string{"error": err.Error()})
+		writeJSON(w, errorResponse(err.Error(), http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		return
 	}
 
 	err := db.UpdateTask(&task)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": err.Error()})
+		writeJSON(w, errorResponse(err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	writeJSON(w, map[string]interface{}{})
+	writeJSON(w, map[string]interface{}{}, http.StatusNoContent)
 }
 
 func handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
-		writeJSON(w, map[string]string{"error": "ID not specified"})
+		writeJSON(w, errorResponse("ID not specified", http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeJSON(w, map[string]string{"error": err.Error()})
+		if err == db.ErrTaskNotFound {
+			writeJSON(w, errorResponse("task not found", http.StatusNotFound), http.StatusNotFound)
+	} else {
+			writeJSON(w, errorResponse(err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 		return
 	}
 
-	writeJSON(w, map[string]interface{}{})
+	writeJSON(w, map[string]interface{}{}, http.StatusNoContent)
 }
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +94,6 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		handleDeleteTask(w, r)
 	default:
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		writeJSON(w, errorResponse("method not allowed", http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"errors"
 
 	_ "modernc.org/sqlite"
 	"go_main_final_project/pkg/validation"
@@ -12,6 +13,7 @@ import (
 )
 
 var db *sql.DB
+var ErrTaskNotFound = errors.New("task not found")
 
 const schema = `
 CREATE TABLE scheduler (
